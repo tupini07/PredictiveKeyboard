@@ -1,0 +1,18 @@
+﻿@page "/"
+
+<PageTitle>Predictive Keyboard</PageTitle>
+
+<h1>Hello,s c!</h1>
+
+Welcome to your new app @somePotato aaaaaaaaaa
+
+<SurveyPrompt Title="asdasd" />
+<button @onclick="HandleClick">Click me</button>
+
+@code {
+    private string somePotato = DummyClass.Property;
+    private void HandleClick()
+    {
+        this.somePotato += DummyClass.Property + "hi";
+    }
+}
