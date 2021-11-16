@@ -26,25 +26,16 @@ namespace Lib
         {
             var words = SplitTextIntoWords(corpus);
 
-            var knownWords = new HashSet<string>();
-            foreach (var word in words) knownWords.Add(word);
-
-            // also consider any other words we might already know (if any)
-            foreach (var previouslyKnownWord in this.word2id.Keys)
-            {
-                knownWords.Add(previouslyKnownWord);
-            }
-
-#if DEBUG
-            Console.WriteLine($"Created NGram structure with size {Size} and {knownWords.Count} words");
-#endif
-
-            foreach (var word in knownWords)
+            foreach (var word in words)
             {
                 var wordHash = word.GetHashCode();
                 id2word[wordHash] = word;
                 word2id[word] = wordHash;
             }
+
+#if DEBUG
+            Console.WriteLine($"Created NGram structure with size {Size} and {this.word2id.Keys.Count} words");
+#endif
 
             this.AllGrams.AddRange(GenerateNGrams(words));
         }
@@ -87,8 +78,15 @@ namespace Lib
             // collapse all spaces to 1 space
             text = Regex.Replace(text, @"\s+", " ");
 
+            // normalize quotes
+            text = Regex.Replace(text, "“", "\"");
+            text = Regex.Replace(text, "’", "'");
+
+            // normalize dashes
+            text = Regex.Replace(text, "—", "-");
+
             // split on relevant characters
-            var words = from w in Regex.Split(text, @"(\s|'|,|""|\.|-|@)") where w != "" && w != " " select w;
+            var words = from w in Regex.Split(text, @"(\s|'|,|;|:|""|!|\?|\.|-|@)") where w != "" && w != " " select w;
             return words;
         }
 

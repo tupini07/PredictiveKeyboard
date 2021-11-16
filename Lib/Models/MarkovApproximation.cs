@@ -81,11 +81,19 @@ namespace Lib.Models
             }
 #endif
 
-            var matches = ngramCounts[convertedToIds.ToList().GetListId()];
-            var allScore = matches.Select(kvp => kvp.Value).Aggregate((a, b) => a + b);
-            return matches.Select(kvp =>
-                new KeyValuePair<string, float>(this.ngramModel.GetWordFromId(kvp.Key), (float)kvp.Value / allScore))
-                .ToDictionary(k => k.Key, v => v.Value);
+            var utteranceId = convertedToIds.ToList().GetListId();
+            if (ngramCounts.ContainsKey(utteranceId))
+            {
+                var matches = ngramCounts[utteranceId];
+                var allScore = matches.Select(kvp => kvp.Value).Aggregate((a, b) => a + b);
+                return matches.Select(kvp =>
+                    new KeyValuePair<string, float>(this.ngramModel.GetWordFromId(kvp.Key), (float)kvp.Value / allScore))
+                    .ToDictionary(k => k.Key, v => v.Value);
+            }
+            else
+            {
+                return new Dictionary<string, float>();
+            }
         }
     }
 }
