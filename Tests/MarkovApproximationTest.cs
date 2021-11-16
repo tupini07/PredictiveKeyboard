@@ -33,6 +33,16 @@ namespace Tests
         }
 
         [TestMethod]
+        public void GenerateNGrams_MultipleSentencesEmptyStart()
+        {
+            var model = new MarkovApproximation();
+            model.Hydrate("This is one sentence. And this is another! A here is a third. Hi this one ends with a question? Who thought that this will be an exclamation!");
+            var pred = model.PredictNextOptions("");
+
+            Assert.AreEqual(5, pred.Count);
+        }
+
+        [TestMethod]
         public void GenerateNGrams_PredictWithUnexistentNgram()
         {
             var model = new MarkovApproximation();

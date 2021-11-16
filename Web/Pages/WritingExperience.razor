@@ -1,0 +1,87 @@
+﻿@page "/writing-experience"
+
+<h3>Writing Experience</h3>
+
+<div>
+    <InputFile OnChange="HydrateModelWithCustomTxt" />
+</div>
+
+<div>
+    Ngram Size: <input type="number" @bind="ngramSize" />
+    <button @onclick="OnChangeNgramSize">Recreate model with new ngram size</button>
+</div>
+
+@if (loadingModel)
+{
+    <p>loading model...</p>
+}
+else
+{
+    <div>
+        <textarea rows="10"
+              @bind-value="inputText"
+              @bind-value:event="oninput" />
+    </div>
+
+    <p>
+        <ul>
+            @foreach (var kvp in GetNextPredictions())
+            {
+                <li @onclick="() => OnOptionClick(kvp.Key)">@kvp.Key : @kvp.Value</li>
+            }
+        </ul>
+    </p>
+}
+
+@code {
+    private string inputText = "";
+    private int ngramSize = 4;
+    private bool loadingModel = false;
+
+    private MarkovApproximation model = new MarkovApproximation();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        model.Hydrate("One sentence. Is then proceeded by another. This is some text that will get to hydrate the initial model, hi");
+    }
+
+    private void OnOptionClick(string option)
+    {
+        inputText += " " + option;
+    }
+
+    private void OnChangeNgramSize()
+    {
+        loadingModel = true;
+        Console.WriteLine(ngramSize);
+        model = new MarkovApproximation(ngramSize: ngramSize);
+        loadingModel = false;
+    }
+
+    private Dictionary<string, float> GetNextPredictions()
+    {
+        var data = model.PredictNextOptions(inputText);
+        var sorted = data.ToList().OrderByDescending(kvp => kvp.Value);
+
+        return sorted.Take(20).ToDictionary(k => k.Key, v => v.Value);
+    }
+
+    private async Task HydrateModelWithCustomTxt(InputFileChangeEventArgs evt)
+    {
+        var fileName = evt.File.Name;
+
+        loadingModel = true;
+        var stream = evt.File.OpenReadStream(maxAllowedSize: 100000000);
+        var byteBuffer = new byte[evt.File.Size];
+        var byteMemory = new Memory<byte>(byteBuffer);
+        await stream.ReadAsync(byteMemory);
+
+        var fileData = System.Text.Encoding.UTF8.GetString(byteBuffer);
+
+        model.Clear();
+        model.Hydrate(fileData);
+
+        loadingModel = false;
+    }
+}

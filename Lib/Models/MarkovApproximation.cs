@@ -4,14 +4,15 @@ namespace Lib.Models
 {
     public class MarkovApproximation
     {
-        private const int NGRAM_SIZE = 4;
+        private int NgramSize = 4;
 
         private NGram ngramModel;
         private Dictionary<string, Dictionary<int, int>> ngramCounts = new Dictionary<string, Dictionary<int, int>>();
 
-        public MarkovApproximation()
+        public MarkovApproximation(int ngramSize = 4)
         {
-            this.ngramModel = new NGram(NGRAM_SIZE);
+            this.NgramSize = ngramSize;
+            this.ngramModel = new NGram(NgramSize);
         }
 
         public void Hydrate(string corpus)
@@ -27,7 +28,7 @@ namespace Lib.Models
 
             foreach (var ngram in this.ngramModel.AllGrams)
             {
-                var ngramBase = ngram.GetRange(0, NGRAM_SIZE - 1);
+                var ngramBase = ngram.GetRange(0, NgramSize - 1);
                 var ngramBaseId = ngramBase.GetListId();
                 var ngramEnd = ngram.Last();
 
@@ -41,7 +42,7 @@ namespace Lib.Models
             }
 
 #if DEBUG
-            Console.WriteLine($"Hydrated Markov approximation model, wutin {ngramCounts.Count} states");
+            Console.WriteLine($"Hydrated Markov approximation model, with {ngramCounts.Count} states");
 #endif
         }
 
@@ -55,7 +56,7 @@ namespace Lib.Models
             var words = NGram.SplitTextIntoWords(currentText).ToList();
             List<string> lastWords = new List<string>();
 
-            var ngramBaseSize = NGRAM_SIZE - 1;
+            var ngramBaseSize = NgramSize - 1;
 
             if (words.Count >= ngramBaseSize)
             {
@@ -94,6 +95,12 @@ namespace Lib.Models
             {
                 return new Dictionary<string, float>();
             }
+        }
+
+        public void Clear()
+        {
+            this.ngramModel = new NGram(NgramSize);
+            ngramCounts = new Dictionary<string, Dictionary<int, int>>();
         }
     }
 }

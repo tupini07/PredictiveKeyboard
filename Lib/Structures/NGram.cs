@@ -5,6 +5,8 @@ namespace Lib
 {
     internal class NGram
     {
+        private readonly HashSet<string> PUNCTUATIONS = new HashSet<string> { "!", "?", "." };
+
         public const int UNKNOWN_ID = -1;
         public const string UNKNOWN_TOKEN = "UNK";
 
@@ -73,47 +75,68 @@ namespace Lib
         public static IEnumerable<string> SplitTextIntoWords(string text)
         {
             // remove newlines and other useless characters
-            text = Regex.Replace(text.ToLower(), @"\n|\t|\r", "");
+            text = Regex.Replace(text.ToLower(), @"\n|\t|\r", " ");
 
             // collapse all spaces to 1 space
             text = Regex.Replace(text, @"\s+", " ");
 
             // normalize quotes
             text = Regex.Replace(text, "“", "\"");
+            text = Regex.Replace(text, "”", "\"");
             text = Regex.Replace(text, "’", "'");
 
             // normalize dashes
             text = Regex.Replace(text, "—", "-");
 
             // split on relevant characters
-            var words = from w in Regex.Split(text, @"(\s|'|,|;|:|""|!|\?|\.|-|@)") where w != "" && w != " " select w;
+            var words = from w in Regex.Split(text, @"(\s|'|,|;|:|""|!|\?|\.|-|@|{|}|\[|\])") where w != "" && w != " " select w;
             return words;
+        }
+
+        private List<int> CreateEmptyNgram()
+        {
+            var emptyGram = new List<int>();
+            for (int i = 0; i < this.Size; i++)
+            {
+                emptyGram.Add(UNKNOWN_ID);
+            }
+
+#if DEBUG
+            if (emptyGram.Count != this.Size)
+            {
+                throw new Exception("Invalid size for ngram");
+            }
+#endif
+            return emptyGram;
         }
 
         public List<List<int>> GenerateNGrams(IEnumerable<string> words)
         {
             var allGramsInInput = new List<List<int>>();
 
-            var currentGram = new List<int>();
-            for (int i = 0; i < this.Size; i++)
-            {
-                currentGram.Add(-1);
-            }
-
-#if DEBUG
-            if (currentGram.Count != this.Size)
-            {
-                throw new Exception("Invalid size for ngram");
-            }
-#endif
+            var currentGram = CreateEmptyNgram();
 
             foreach (var word in words)
             {
-                currentGram.PopLeft();
+                var popped = currentGram.PopLeft();
                 currentGram.Add(word2id[word]);
 
                 allGramsInInput.Add(currentGram.CopyList());
+
+                // if it's a sentence end then new gram should start from empty
+                var poppedWord = id2word[popped];
+                if (PUNCTUATIONS.Contains(poppedWord))
+                {
+                    var subNgram = CreateEmptyNgram();
+                    foreach (var tokenInNgram in currentGram)
+                    {
+                        subNgram.PopLeft();
+                        subNgram.Add(tokenInNgram);
+                        allGramsInInput.Add(subNgram.CopyList());
+                    }
+                }
             }
+
             return allGramsInInput;
         }
     }
