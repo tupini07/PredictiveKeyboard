@@ -1,4 +1,4 @@
-﻿namespace PredictiveKeyboardLib.Interfaces
+﻿namespace Lib.Interfaces
 {
     public interface IGenerationModel
     {

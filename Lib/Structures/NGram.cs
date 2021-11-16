@@ -1,6 +1,7 @@
-﻿using PredictiveKeyboardLib.Extensions;
+﻿using Lib.Extensions;
+using System.Text.RegularExpressions;
 
-namespace PredictiveKeyboardLib
+namespace Lib
 {
     internal class NGram
     {
@@ -80,8 +81,14 @@ namespace PredictiveKeyboardLib
 
         public static IEnumerable<string> SplitTextIntoWords(string text)
         {
-            text = text.ToLower();
-            var words = from w in text.Split(' ') where w != "" select w;
+            // remove newlines and other useless characters
+            text = Regex.Replace(text.ToLower(), @"\n|\t|\r", "");
+
+            // collapse all spaces to 1 space
+            text = Regex.Replace(text, @"\s+", " ");
+
+            // split on relevant characters
+            var words = from w in Regex.Split(text, @"(\s|'|,|""|\.|-|@)") where w != "" && w != " " select w;
             return words;
         }
 

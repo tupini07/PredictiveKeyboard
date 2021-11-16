@@ -1,4 +1,4 @@
-﻿namespace PredictiveKeyboardLib.Extensions
+﻿namespace Lib.Extensions
 {
     internal static class ListExtensions
     {

@@ -1,6 +1,6 @@
-﻿using PredictiveKeyboardLib.Extensions;
+﻿using Lib.Extensions;
 
-namespace PredictiveKeyboardLib.Models
+namespace Lib.Models
 {
     public class MarkovApproximation
     {

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -15,7 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PredictiveKeyboardLib\PredictiveKeyboardLib.csproj" />
+    <ProjectReference Include="..\Lib\Lib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="TestData\" />
   </ItemGroup>
 
 </Project>

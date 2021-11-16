@@ -1,14 +1,14 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PredictiveKeyboardLib.Models;
+using Lib.Models;
 using System.Linq;
 
-namespace PredictiveKeyboardLibTests
+namespace Tests
 {
     [TestClass]
     public class MarkovApproximationTest
     {
         [TestMethod]
-        public void GenerateNGrams()
+        public void GenerateNGrams_Basic()
         {
             var model = new MarkovApproximation();
             model.Hydrate("this is some potato text");
