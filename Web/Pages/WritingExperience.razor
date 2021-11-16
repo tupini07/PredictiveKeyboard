@@ -1,4 +1,7 @@
 ﻿@page "/writing-experience"
+@using Newtonsoft.Json
+@using Web.Models
+@inject HttpClient Http
 
 <h3>Writing Experience</h3>
 
@@ -18,7 +21,7 @@
 else
 {
     <div>
-        <textarea rows="10"
+        <textarea class="experience-textarea" rows="10"
               @bind-value="inputText"
               @bind-value:event="oninput" />
     </div>
@@ -31,21 +34,57 @@ else
             }
         </ul>
     </p>
+
+
+
+    @if (possibleModels.Any())
+    {
+        <h2>Models</h2>
+        <ul>
+            @foreach (var model in possibleModels)
+            {
+                <li @onclick="() => LoadPreBakedModel(model)">@model</li>
+            }
+        </ul>
+    }
 }
+
 
 @code {
     private string inputText = "";
     private int ngramSize = 4;
     private bool loadingModel = false;
+    private List<string> possibleModels = new List<string>();
 
     private MarkovApproximation model = new MarkovApproximation();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
+
         model.Hydrate("One sentence. Is then proceeded by another. This is some text that will get to hydrate the initial model, hi");
+        await FetchPossibleModels();
     }
 
+    private async Task FetchPossibleModels()
+    {
+        var data = await Http.GetFromJsonAsync<ModelIndex>("api/data/baked-models/index.json");
+        if (data?.modelFiles != null)
+        {
+            possibleModels = data.modelFiles;
+            possibleModels.Sort();
+        }
+    }
+
+    private async Task LoadPreBakedModel(string modelName)
+    {
+        loadingModel = true;
+        var data = await Http.GetByteArrayAsync($"api/data/baked-models/{modelName}");
+        model = MarkovApproximation.FromCompressedData(data);
+        loadingModel = false;
+    }
+
+    //private void OnOptionClicka(string option) { }
     private void OnOptionClick(string option)
     {
         inputText += " " + option;

@@ -1,4 +1,7 @@
 ﻿using Lib.Extensions;
+using Lib.Serialization;
+using Lib.Utils;
+using Newtonsoft.Json;
 
 namespace Lib.Models
 {
@@ -8,6 +11,20 @@ namespace Lib.Models
 
         private NGram ngramModel;
         private Dictionary<string, Dictionary<int, int>> ngramCounts = new Dictionary<string, Dictionary<int, int>>();
+
+        public static MarkovApproximation FromCompressedData(byte[] bytes)
+        {
+            var json = Compressor.Unzip(bytes);
+            var deserialized = JsonConvert.DeserializeObject<MarkovApproximation>(json, new JsonSerializerSettings
+            {
+                ContractResolver = new ModelJsonContractResolver()
+            });
+
+            if (deserialized == null)
+                throw new Exception("Could not create model from compressed data");
+
+            return deserialized;
+        }
 
         public MarkovApproximation(int ngramSize = 4)
         {

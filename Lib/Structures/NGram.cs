@@ -88,6 +88,9 @@ namespace Lib
             // normalize dashes
             text = Regex.Replace(text, "—", "-");
 
+            // not really necessary, but some people put periods before closed parenthesis
+            text = text.Replace(".)", ").");
+
             // split on relevant characters
             var words = from w in Regex.Split(text, @"(\s|'|,|;|:|""|!|\?|\.|-|@|{|}|\[|\])") where w != "" && w != " " select w;
             return words;
