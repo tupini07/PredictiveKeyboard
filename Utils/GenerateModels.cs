@@ -16,7 +16,7 @@ namespace Utils
             Directory.CreateDirectory(BAKED_MODELS_DIR);
         }
 
-        public static ModelIndex BakeMarkovModels(ModelIndex modelIndex = null)
+        public static ModelIndex BakeMarkovModels(ModelIndex? modelIndex = null)
         {
             if (modelIndex == null)
             {
@@ -53,7 +53,7 @@ namespace Utils
         }
 
 
-        public static ModelIndex BakeEnsembleMarkovModels(ModelIndex modelIndex = null)
+        public static ModelIndex BakeEnsembleMarkovModels(ModelIndex? modelIndex = null)
         {
             if (modelIndex == null)
             {

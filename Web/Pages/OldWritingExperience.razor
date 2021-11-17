@@ -1,10 +1,18 @@
-﻿@page "/writing-experience"
+﻿@page "/old-writing-experience"
 @using Newtonsoft.Json
 @using Lib.Entities
 @inject HttpClient Http
 
 <h3>Writing Experience</h3>
 
+<div>
+    <InputFile OnChange="HydrateModelWithCustomTxt" />
+</div>
+
+<div>
+    Ngram Size: <input type="number" @bind="ngramSize" />
+    <button @onclick="OnChangeNgramSize">Recreate model with new ngram size</button>
+</div>
 
 @if (loadingModel)
 {
@@ -13,16 +21,21 @@
 else
 {
     <div>
-        <InputFile OnChange="HydrateModelWithCustomTxt" />
-    </div>
-    <div>
         <textarea class="experience-textarea" rows="10"
-              @bind="inputText"
-
-              disabled=true />
+              @bind-value="inputText"
+              @bind-value:event="oninput" />
     </div>
 
-    <KeyboardComponent WordPredictions=GetNextPredictions() OnWordSelected=OnOptionClick />
+    <p>
+        <ul>
+            @foreach (var pred in GetNextPredictions())
+            {
+                <li @onclick="() => OnOptionClick(pred.Word)">@pred.Word : @pred.Score</li>
+            }
+        </ul>
+    </p>
+
+
 
     @if (possibleModels.Any())
     {
@@ -39,6 +52,7 @@ else
 
 @code {
     private string inputText = "";
+    private int ngramSize = 4;
     private bool loadingModel = false;
     private List<string> possibleModels = new List<string>();
 
@@ -47,6 +61,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
         model.Hydrate("One sentence. Is then proceeded by another. This is some text that will get to hydrate the initial model, hi");
         await FetchPossibleModels();
     }
@@ -70,10 +85,17 @@ else
     }
 
     //private void OnOptionClicka(string option) { }
-    private void OnOptionClick(Prediction option)
+    private void OnOptionClick(string option)
     {
-        this.inputText += " " + option.Word;
-        StateHasChanged();
+        inputText += " " + option;
+    }
+
+    private void OnChangeNgramSize()
+    {
+        loadingModel = true;
+        Console.WriteLine(ngramSize);
+        model = new MarkovEnsemble(ngramSize);
+        loadingModel = false;
     }
 
     private IEnumerable<Prediction> GetNextPredictions()
@@ -89,7 +111,7 @@ else
         var fileName = evt.File.Name;
 
         loadingModel = true;
-        var stream = evt.File.OpenReadStream(maxAllowedSize: 1000000000);
+        var stream = evt.File.OpenReadStream(maxAllowedSize: 100000000);
         var byteBuffer = new byte[evt.File.Size];
         var byteMemory = new Memory<byte>(byteBuffer);
         await stream.ReadAsync(byteMemory);

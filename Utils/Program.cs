@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using Lib.Entities;
 
 namespace Utils
 {
@@ -26,7 +27,9 @@ namespace Utils
             {
                 Console.WriteLine("Generating Models");
                 GenerateModels.RecreateBakedModelsDir();
-                var modelIndex = GenerateModels.BakeMarkovModels();
+
+                var modelIndex = new ModelIndex();
+                //GenerateModels.BakeMarkovModels(modelIndex);
                 GenerateModels.BakeEnsembleMarkovModels(modelIndex);
             }
         }

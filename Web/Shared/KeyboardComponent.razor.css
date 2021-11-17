@@ -1,0 +1,16 @@
+﻿.keyboard-entry {
+    display: flex;
+    flex: 33%;
+}
+
+.keyboard-row {
+    display: flex;
+    flex-direction: row;
+    flex: auto;
+}
+
+.keyboard-container {
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+}

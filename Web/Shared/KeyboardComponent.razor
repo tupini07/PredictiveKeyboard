@@ -1,0 +1,29 @@
+﻿@using Lib.Entities
+@using Lib.Extensions
+
+@if (WordPredictions != null && OnWordSelected != null)
+{
+    <div class="keyboard-container">
+        @foreach (var batch in WordPredictions.Batch(3))
+        {
+            <div class="keyboard-row">
+                @foreach (var pred in batch)
+                {
+                    <button class="keyboard-entry" @onclick="() => OnWordSelected(pred)">@pred.Word : @pred.Score</button>
+                }
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>Loading keyboard</p>
+}
+
+@code {
+    [Parameter]
+    public IEnumerable<Prediction>? WordPredictions { get; set; }
+
+    [Parameter]
+    public Action<Prediction>? OnWordSelected { get; set; }
+}

@@ -73,16 +73,11 @@ namespace Lib.Models
                 }
             }
 
-#if DEBUG
-            if (predictions.Count > MAX_NUMBER_PREDICTIONS)
-            {
-                throw new Exception($"Invalid amount of predictions returned from ensemble! Got {predictions.Count}, expected {MAX_NUMBER_PREDICTIONS}");
-            }
-#endif
+            var cutPreds = predictions.Take(MAX_NUMBER_PREDICTIONS);
 
             // normalize scores and return
-            float allScores = predictions.Aggregate(0.0f, (acc, pred) => acc + pred.Score);
-            return predictions.Select(pred =>
+            float allScores = cutPreds.Aggregate(0.0f, (acc, pred) => acc + pred.Score);
+            return cutPreds.Select(pred =>
             {
                 pred.Score = pred.Score / allScores;
                 return pred;
