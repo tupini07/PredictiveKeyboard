@@ -20,6 +20,8 @@ jobs:
         with:
           dotnet-version: '6.0.x'
           include-prerelease: true
+      - name: Install WASM tools
+        run: dotnet workload install wasm-tools
       - name: Run tests
         run: dotnet test
       - name: Generate pretrained models
@@ -27,7 +29,6 @@ jobs:
       - name: Build web
         run: |
              cd Web
-             dotnet workload install wasm-tools
              dotnet publish -c Release
       - name: GitHub Pages
         uses: crazy-max/ghaction-github-pages@v2.5.0
