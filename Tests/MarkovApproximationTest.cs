@@ -17,19 +17,21 @@ namespace Tests
             var pred = model.PredictNextOptions("this is some");
 
             Assert.AreEqual(1, pred.Count);
-            Assert.AreEqual("potato", pred.Keys.First());
-            Assert.AreEqual(1, pred["potato"]);
+            Assert.AreEqual("potato", pred.First().Word);
+            Assert.AreEqual(1, pred.First().Score);
 
             model.Hydrate("this is some cereal for breakfast");
 
             pred = model.PredictNextOptions("this is some");
             Assert.AreEqual(2, pred.Count);
-            Assert.IsTrue(pred.Keys.ToList().Contains("potato"));
-            Assert.IsTrue(pred.Keys.ToList().Contains("cereal"));
+
+            var predictedWords = pred.Select(p => p.Word);
+            Assert.IsTrue(predictedWords.Contains("potato"));
+            Assert.IsTrue(predictedWords.Contains("cereal"));
 
 
-            Assert.AreEqual(0.5, pred["potato"]);
-            Assert.AreEqual(0.5, pred["cereal"]);
+            Assert.AreEqual(0.5, pred.Single(p => p.Word == "potato").Score);
+            Assert.AreEqual(0.5, pred.Single(p => p.Word == "cereal").Score);
         }
 
         [TestMethod]
@@ -63,7 +65,7 @@ namespace Tests
             var pred = model.PredictNextOptions("Darcy made no");
 
             Assert.AreEqual(1, pred.Count);
-            Assert.AreEqual("answer", pred.Keys.First());
+            Assert.AreEqual("answer", pred.First().Word);
 
             pred = model.PredictNextOptions("Darcy made no answer");
 

@@ -1,30 +1,17 @@
-﻿using Lib.Extensions;
+﻿using Lib.Entities;
+using Lib.Extensions;
 using Lib.Serialization;
 using Lib.Utils;
 using Newtonsoft.Json;
 
 namespace Lib.Models
 {
-    public class MarkovApproximation
+    public class MarkovApproximation : BaseModel<MarkovApproximation>
     {
         private int NgramSize = 4;
 
         private NGram ngramModel;
         private Dictionary<string, Dictionary<int, int>> ngramCounts = new Dictionary<string, Dictionary<int, int>>();
-
-        public static MarkovApproximation FromCompressedData(byte[] bytes)
-        {
-            var json = Compressor.Unzip(bytes);
-            var deserialized = JsonConvert.DeserializeObject<MarkovApproximation>(json, new JsonSerializerSettings
-            {
-                ContractResolver = new ModelJsonContractResolver()
-            });
-
-            if (deserialized == null)
-                throw new Exception("Could not create model from compressed data");
-
-            return deserialized;
-        }
 
         public MarkovApproximation(int ngramSize = 4)
         {
@@ -32,7 +19,7 @@ namespace Lib.Models
             this.ngramModel = new NGram(NgramSize);
         }
 
-        public void Hydrate(string corpus)
+        public override void Hydrate(string corpus)
         {
             this.ngramModel.AddContent(corpus);
 
@@ -63,7 +50,7 @@ namespace Lib.Models
 #endif
         }
 
-        public Dictionary<string, float> PredictNextOptions(string currentText)
+        public override List<Prediction> PredictNextOptions(string currentText)
         {
             if (ngramModel == null)
             {
@@ -105,16 +92,19 @@ namespace Lib.Models
                 var matches = ngramCounts[utteranceId];
                 var allScore = matches.Select(kvp => kvp.Value).Aggregate((a, b) => a + b);
                 return matches.Select(kvp =>
-                    new KeyValuePair<string, float>(this.ngramModel.GetWordFromId(kvp.Key), (float)kvp.Value / allScore))
-                    .ToDictionary(k => k.Key, v => v.Value);
+                    new Prediction
+                    {
+                        Word = this.ngramModel.GetWordFromId(kvp.Key),
+                        Score = (float)kvp.Value / allScore,
+                    }).ToList();
             }
             else
             {
-                return new Dictionary<string, float>();
+                return new List<Prediction>();
             }
         }
 
-        public void Clear()
+        public override void Clear()
         {
             this.ngramModel = new NGram(NgramSize);
             ngramCounts = new Dictionary<string, Dictionary<int, int>>();

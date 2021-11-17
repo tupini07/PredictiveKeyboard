@@ -28,9 +28,9 @@ else
 
     <p>
         <ul>
-            @foreach (var kvp in GetNextPredictions())
+            @foreach (var pred in GetNextPredictions())
             {
-                <li @onclick="() => OnOptionClick(kvp.Key)">@kvp.Key : @kvp.Value</li>
+                <li @onclick="() => OnOptionClick(pred.Word)">@pred.Word : @pred.Score</li>
             }
         </ul>
     </p>
@@ -98,12 +98,12 @@ else
         loadingModel = false;
     }
 
-    private Dictionary<string, float> GetNextPredictions()
+    private IEnumerable<Prediction> GetNextPredictions()
     {
         var data = model.PredictNextOptions(inputText);
-        var sorted = data.ToList().OrderByDescending(kvp => kvp.Value);
+        var sorted = data.ToList().OrderByDescending(pred => pred.Score);
 
-        return sorted.Take(20).ToDictionary(k => k.Key, v => v.Value);
+        return sorted.Take(20);
     }
 
     private async Task HydrateModelWithCustomTxt(InputFileChangeEventArgs evt)
