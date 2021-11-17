@@ -30,6 +30,15 @@ jobs:
         run: |
              cd Web
              dotnet publish -c Release
+
+      # copy index.html to 404.html to serve the same file when a file is not found
+      - name: copy index.html to 404.html
+        run: cp Web/bin/Release/net6.0/publish/wwwroot/index.html Web/bin/Release/net6.0/publish/wwwroot/404.html
+
+      # add .nojekyll file to tell GitHub pages to not treat this as a Jekyll project. (Allow files and folders starting with an underscore)
+      - name: Add .nojekyll file
+        run: touch Web/bin/Release/net6.0/publish/wwwroot/.nojekyll
+
       - name: GitHub Pages
         uses: crazy-max/ghaction-github-pages@v2.5.0
         with:
