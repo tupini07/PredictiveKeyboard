@@ -1,0 +1,31 @@
+name: Build and Release
+
+env:
+  PROJECT_NAME: PredictiveKeyboard
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Generate pretrained models
+        run: dotnet run --project ./Utils/Utils.csproj --generatemodels
+      - name: Build web
+        run: |
+             cd Web
+             dotnet workload install wasm-tools
+             dotnet publish -c Release
+      - name: GitHub Pages
+        uses: crazy-max/ghaction-github-pages@v2.5.0
+        with:
+          target_branch: gh-pages
+          build_dir: Web/bin/Release/net6.0/publish/wwwroot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

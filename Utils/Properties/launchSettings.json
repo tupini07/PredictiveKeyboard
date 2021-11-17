@@ -2,7 +2,8 @@
   "profiles": {
     "Utils": {
       "commandName": "Project",
-      "commandLineArgs": "--generatemodels"
+      "commandLineArgs": "--generatemodels",
+      "workingDirectory": "$(SolutionDir)\\"
     }
   }
 }

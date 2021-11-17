@@ -10,7 +10,7 @@ namespace Utils
     {
         public static void BakeMarkovModels()
         {
-            const string BAKED_MODELS_DIR = "../../../../Web/wwwroot/api/data/baked-models";
+            const string BAKED_MODELS_DIR = "Web/wwwroot/api/data/baked-models";
             if (Directory.Exists(BAKED_MODELS_DIR)) Directory.Delete(BAKED_MODELS_DIR, true);
             Directory.CreateDirectory(BAKED_MODELS_DIR);
 
@@ -18,7 +18,7 @@ namespace Utils
 
             foreach (var ngramSize in new List<int> { 2, 3, 4 })
             {
-                foreach (var filePath in Directory.EnumerateFiles(@"TestData"))
+                foreach (var filePath in Directory.EnumerateFiles(@"Tests/TestData"))
                 {
                     var dataSourceName = Path.GetFileNameWithoutExtension(filePath);
                     var modelFileName = $"{dataSourceName}_{ngramSize}gram.mdl";
