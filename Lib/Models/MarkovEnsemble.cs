@@ -4,7 +4,7 @@ namespace Lib.Models
 {
     public class MarkovEnsemble : BaseModel<MarkovEnsemble>
     {
-        private const int MIN_NUMBER_SOLUTION = 18;
+        private const int MAX_NUMBER_PREDICTIONS = 18;
 
         private List<MarkovApproximation> subModels;
         private int numberSubmodels;
@@ -43,18 +43,50 @@ namespace Lib.Models
 
         public override List<Prediction> PredictNextOptions(string currentText)
         {
+            // only one model can predict a certain word
             var predictions = new List<Prediction>();
-            foreach (var submodel in subModels)
+            var seenWords = new HashSet<string>();
+
+            // get tiered predictions
+            for (var i = 0; i < subModels.Count && predictions.Count <= MAX_NUMBER_PREDICTIONS; i++)
             {
-                var modelPreds = submodel.PredictNextOptions(currentText);
-                modelPreds.OrderByDescending(pred => pred.Score);
+                var submodel = subModels[i];
+                var modelPreds = submodel.PredictNextOptions(currentText)
+                    .OrderByDescending(pred => pred.Score)
+                    .Select(pred =>
+                    {
+                        // The oldest models have lower scores ( /10 for every model)
+                        pred.Score = pred.Score / (i == 0 ? 1 : 10 * i);
+                        return pred;
+                    }); ;
 
-                predictions.AddRange(modelPreds);
+                foreach (var mp in modelPreds)
+                {
+                    if (!seenWords.Contains(mp.Word))
+                    {
+                        seenWords.Add(mp.Word);
+                        predictions.Add(mp);
+                    }
 
-                if (predictions.Count >= MIN_NUMBER_SOLUTION) break;
+                    if (predictions.Count == MAX_NUMBER_PREDICTIONS)
+                        break;
+                }
             }
 
-            return predictions.Take(MIN_NUMBER_SOLUTION).ToList();
+#if DEBUG
+            if (predictions.Count > MAX_NUMBER_PREDICTIONS)
+            {
+                throw new Exception($"Invalid amount of predictions returned from ensemble! Got {predictions.Count}, expected {MAX_NUMBER_PREDICTIONS}");
+            }
+#endif
+
+            // normalize scores and return
+            float allScores = predictions.Aggregate(0.0f, (acc, pred) => acc + pred.Score);
+            return predictions.Select(pred =>
+            {
+                pred.Score = pred.Score / allScores;
+                return pred;
+            }).ToList();
         }
     }
 }
