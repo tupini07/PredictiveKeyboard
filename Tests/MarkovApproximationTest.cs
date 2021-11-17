@@ -1,12 +1,7 @@
 using Lib.Models;
-using Lib.Serialization;
-using Lib.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Lib.Entities;
 
 namespace Tests
 {
@@ -53,7 +48,7 @@ namespace Tests
             var model = new MarkovApproximation();
             model.Hydrate("this is some potato text");
 
-            var pred = model.PredictNextOptions("something");
+            var pred = model.PredictNextOptions("text");
             Assert.AreEqual(0, pred.Count);
         }
 

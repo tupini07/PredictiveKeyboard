@@ -15,6 +15,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Install dotnet core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+          include-prerelease: true
+      - name: Run tests
+        run: dotnet test
       - name: Generate pretrained models
         run: dotnet run --project ./Utils/Utils.csproj --generatemodels
       - name: Build web
