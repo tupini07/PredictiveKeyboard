@@ -1,13 +1,12 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Lib.Models;
-using System.Linq;
-using System.IO;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Lib.Serialization;
 using Lib.Utils;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using System.Collections.Generic;
-using Web.Models;
+using System.IO;
+using System.Linq;
+using Lib.Entities;
 
 namespace Tests
 {
@@ -74,43 +73,6 @@ namespace Tests
             pred = model.PredictNextOptions("Darcy made no answer");
 
             Assert.AreEqual(3, pred.Count);
-        }
-
-
-        [TestMethod, TestCategory("Utility")]
-        public void BakeModels()
-        {
-            const string BAKED_MODELS_DIR = "../../../../Web/wwwroot/api/data/baked-models";
-            if (Directory.Exists(BAKED_MODELS_DIR)) Directory.Delete(BAKED_MODELS_DIR, true);
-            Directory.CreateDirectory(BAKED_MODELS_DIR);
-
-            var indexData = new ModelIndex();
-
-            foreach (var ngramSize in new List<int> { 2, 3, 4 })
-            {
-                foreach (var filePath in Directory.EnumerateFiles(@"TestData"))
-                {
-                    var data = File.ReadAllText(filePath);
-                    var model = new MarkovApproximation(ngramSize: ngramSize);
-                    model.Hydrate(data);
-
-                    var serialized = JsonConvert.SerializeObject(model, new JsonSerializerSettings
-                    {
-                        ContractResolver = new ModelJsonContractResolver()
-                    });
-
-                    var dataSourceName = Path.GetFileNameWithoutExtension(filePath);
-                    var modelFileName = $"{dataSourceName}_{ngramSize}gram.mdl";
-
-                    indexData.sourceFiles.Add(dataSourceName);
-                    indexData.modelFiles.Add(modelFileName);
-
-                    File.WriteAllBytes($"{BAKED_MODELS_DIR}/{modelFileName}", Compressor.Zip(serialized));
-                }
-            }
-
-
-            File.WriteAllText($"{BAKED_MODELS_DIR}/index.json", JsonConvert.SerializeObject(indexData));
         }
     }
 

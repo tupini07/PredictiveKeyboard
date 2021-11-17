@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Utils": {
+      "commandName": "Project",
+      "commandLineArgs": "--generatemodels"
+    }
+  }
+}

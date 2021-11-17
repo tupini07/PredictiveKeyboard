@@ -1,4 +1,4 @@
-﻿namespace Web.Models
+﻿namespace Lib.Entities
 {
     public class ModelIndex
     {
