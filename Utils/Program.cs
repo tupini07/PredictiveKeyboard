@@ -25,7 +25,9 @@ namespace Utils
             if (opts.GenerateModels)
             {
                 Console.WriteLine("Generating Models");
-                GenerateModels.BakeMarkovModels();
+                GenerateModels.RecreateBakedModelsDir();
+                var modelIndex = GenerateModels.BakeMarkovModels();
+                GenerateModels.BakeEnsembleMarkovModels(modelIndex);
             }
         }
         static void HandleParseError(IEnumerable<Error> errs)

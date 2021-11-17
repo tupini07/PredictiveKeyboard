@@ -8,42 +8,82 @@ namespace Utils
 {
     internal class GenerateModels
     {
-        public static void BakeMarkovModels()
+        const string BAKED_MODELS_DIR = "Web/wwwroot/api/data/baked-models";
+
+        public static void RecreateBakedModelsDir()
         {
-            const string BAKED_MODELS_DIR = "Web/wwwroot/api/data/baked-models";
             if (Directory.Exists(BAKED_MODELS_DIR)) Directory.Delete(BAKED_MODELS_DIR, true);
             Directory.CreateDirectory(BAKED_MODELS_DIR);
+        }
 
-            var indexData = new ModelIndex();
+        public static ModelIndex BakeMarkovModels(ModelIndex modelIndex = null)
+        {
+            if (modelIndex == null)
+            {
+                modelIndex = new ModelIndex();
+            }
 
             foreach (var ngramSize in new List<int> { 2, 3, 4 })
             {
                 foreach (var filePath in Directory.EnumerateFiles(@"Tests/TestData"))
                 {
                     var dataSourceName = Path.GetFileNameWithoutExtension(filePath);
-                    var modelFileName = $"{dataSourceName}_{ngramSize}gram.mdl";
+                    var modelFileName = $"{dataSourceName}_markov_{ngramSize}gram.mdl";
 
                     Console.WriteLine($"\nGenerating model: {modelFileName}");
 
                     var data = File.ReadAllText(filePath);
+
                     var model = new MarkovApproximation(ngramSize: ngramSize);
                     model.Hydrate(data);
 
-                    var serialized = JsonConvert.SerializeObject(model, new JsonSerializerSettings
-                    {
-                        ContractResolver = new ModelJsonContractResolver()
-                    });
+                    if (!modelIndex.sourceFiles.Contains(dataSourceName))
+                        modelIndex.sourceFiles.Add(dataSourceName);
 
+                    modelIndex.modelFiles.Add(modelFileName);
 
-                    indexData.sourceFiles.Add(dataSourceName);
-                    indexData.modelFiles.Add(modelFileName);
-
-                    File.WriteAllBytes($"{BAKED_MODELS_DIR}/{modelFileName}", Compressor.Zip(serialized));
+                    File.WriteAllBytes($"{BAKED_MODELS_DIR}/{modelFileName}", model.ToCompressedData());
                 }
             }
 
 
-            File.WriteAllText($"{BAKED_MODELS_DIR}/index.json", JsonConvert.SerializeObject(indexData));
+            File.WriteAllText($"{BAKED_MODELS_DIR}/index.json", JsonConvert.SerializeObject(modelIndex));
+
+            return modelIndex;
+        }
+
+
+        public static ModelIndex BakeEnsembleMarkovModels(ModelIndex modelIndex = null)
+        {
+            if (modelIndex == null)
+            {
+                modelIndex = new ModelIndex();
+            }
+
+            foreach (var filePath in Directory.EnumerateFiles(@"Tests/TestData"))
+            {
+                var dataSourceName = Path.GetFileNameWithoutExtension(filePath);
+                var modelFileName = $"{dataSourceName}_markov_ensemble_size4.mdl";
+
+                Console.WriteLine($"\nGenerating model: {modelFileName}");
+
+                var data = File.ReadAllText(filePath);
+
+                var model = new MarkovEnsemble(4);
+                model.Hydrate(data);
+
+                if (!modelIndex.sourceFiles.Contains(dataSourceName))
+                    modelIndex.sourceFiles.Add(dataSourceName);
+
+                modelIndex.modelFiles.Add(modelFileName);
+
+                File.WriteAllBytes($"{BAKED_MODELS_DIR}/{modelFileName}", model.ToCompressedData());
+            }
+
+
+            File.WriteAllText($"{BAKED_MODELS_DIR}/index.json", JsonConvert.SerializeObject(modelIndex));
+
+            return modelIndex;
         }
     }
 }
