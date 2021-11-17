@@ -6,7 +6,9 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
 		<InvariantGlobalization>true</InvariantGlobalization>
+		<!-- 
 		<RunAOTCompilation>true</RunAOTCompilation>
+		-->
 		<SignAssembly>False</SignAssembly>
 	</PropertyGroup>
 
@@ -24,7 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Clients\" />
+		<Folder Include="Clients\" />
 	</ItemGroup>
 
 </Project>
