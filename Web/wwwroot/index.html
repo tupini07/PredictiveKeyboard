@@ -7,6 +7,8 @@
 
     <base />
     <script>
+        // Use correct base URL, depending on whether application is running locally
+        // or running on github pages
         var path = window.location.pathname.split('/');
         var base = document.getElementsByTagName('base')[0];
         if (window.location.host.includes('localhost')) {
