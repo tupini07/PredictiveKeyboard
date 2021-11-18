@@ -1,4 +1,5 @@
 ﻿using Lib.Entities;
+using Lib.Extensions;
 using Lib.Models;
 using Newtonsoft.Json;
 
@@ -14,41 +15,48 @@ namespace Utils
             Directory.CreateDirectory(BAKED_MODELS_DIR);
         }
 
-        public static ModelIndex BakeMarkovModels(ModelIndex? modelIndex = null)
+        public static void CreateCategoryDirIfNotExists(string category)
         {
-            if (modelIndex == null)
-            {
-                modelIndex = new ModelIndex();
-            }
-
-            foreach (var ngramSize in new List<int> { 2, 3, 4 })
-            {
-                foreach (var filePath in Directory.EnumerateFiles(@"Tests/TestData"))
-                {
-                    var dataSourceName = Path.GetFileNameWithoutExtension(filePath);
-                    var modelFileName = $"{dataSourceName}_markov_{ngramSize}gram.mdl";
-
-                    Console.WriteLine($"\nGenerating model: {modelFileName}");
-
-                    var data = File.ReadAllText(filePath);
-
-                    var model = new MarkovApproximation(ngramSize: ngramSize);
-                    model.Hydrate(data);
-
-                    if (!modelIndex.sourceFiles.Contains(dataSourceName))
-                        modelIndex.sourceFiles.Add(dataSourceName);
-
-                    modelIndex.modelFiles.Add(modelFileName);
-
-                    File.WriteAllBytes($"{BAKED_MODELS_DIR}/{modelFileName}", model.ToCompressedData());
-                }
-            }
-
-
-            File.WriteAllText($"{BAKED_MODELS_DIR}/index.json", JsonConvert.SerializeObject(modelIndex));
-
-            return modelIndex;
+            var dirPath = $"{BAKED_MODELS_DIR}/{category}";
+            if (!Directory.Exists(dirPath))
+                Directory.CreateDirectory(dirPath);
         }
+
+        //public static ModelIndex BakeMarkovModels(ModelIndex? modelIndex = null)
+        //{
+        //    if (modelIndex == null)
+        //    {
+        //        modelIndex = new ModelIndex();
+        //    }
+
+        //    foreach (var ngramSize in new List<int> { 2, 3, 4 })
+        //    {
+        //        foreach (var filePath in Directory.EnumerateFiles(@"Tests/TestData"))
+        //        {
+        //            var dataSourceName = Path.GetFileNameWithoutExtension(filePath);
+        //            var modelFileName = $"{dataSourceName}_markov_{ngramSize}gram.mdl";
+
+        //            Console.WriteLine($"\nGenerating model: {modelFileName}");
+
+        //            var data = File.ReadAllText(filePath);
+
+        //            var model = new MarkovApproximation(ngramSize: ngramSize);
+        //            model.Hydrate(data);
+
+        //            if (!modelIndex.sourceFiles.Contains(dataSourceName))
+        //                modelIndex.sourceFiles.Add(dataSourceName);
+
+        //            modelIndex.modelFiles.Add(modelFileName);
+
+        //            File.WriteAllBytes($"{BAKED_MODELS_DIR}/{modelFileName}", model.ToCompressedData());
+        //        }
+        //    }
+
+
+        //    File.WriteAllText($"{BAKED_MODELS_DIR}/index.json", JsonConvert.SerializeObject(modelIndex));
+
+        //    return modelIndex;
+        //}
 
 
         public static ModelIndex BakeEnsembleMarkovModels(ModelIndex? modelIndex = null)
@@ -60,26 +68,42 @@ namespace Utils
                 modelIndex = new ModelIndex();
             }
 
-            foreach (var filePath in Directory.EnumerateFiles(@"Tests/TestData"))
+            foreach (var fileCategoryDir in Directory.EnumerateDirectories("Tests/TestData"))
             {
-                var dataSourceName = Path.GetFileNameWithoutExtension(filePath);
-                var modelFileName = $"{dataSourceName}_markov_ensemble_size{ensembleSize}.mdl";
+                var categoryName = Path.GetFileName(fileCategoryDir);
+                CreateCategoryDirIfNotExists(categoryName);
 
-                Console.WriteLine($"\nGenerating model: {modelFileName}");
+                foreach (var filePath in Directory.EnumerateFiles(fileCategoryDir))
+                {
+                    var dataSourceName = Path.GetFileNameWithoutExtension(filePath);
+                    var modelFileName = $"{dataSourceName}_markov_ensemble_size{ensembleSize}.mdl";
 
-                var data = File.ReadAllText(filePath);
+                    Console.WriteLine($"\nGenerating model: {modelFileName}");
 
-                var model = new MarkovEnsemble(ensembleSize);
-                model.Hydrate(data);
+                    var data = File.ReadAllText(filePath);
 
-                if (!modelIndex.sourceFiles.Contains(dataSourceName))
-                    modelIndex.sourceFiles.Add(dataSourceName);
+                    var model = new MarkovEnsemble(ensembleSize);
+                    model.Hydrate(data);
 
-                modelIndex.modelFiles.Add(modelFileName);
+                    if (!modelIndex.sourceFiles.Contains(dataSourceName))
+                        modelIndex.sourceFiles.Add(dataSourceName);
 
-                File.WriteAllBytes($"{BAKED_MODELS_DIR}/{modelFileName}", model.ToCompressedData());
+                    var modelApiPath = $"{categoryName}/{modelFileName}";
+                    var modelBytes = model.ToCompressedData();
+                    File.WriteAllBytes($"{BAKED_MODELS_DIR}/{modelApiPath}", modelBytes);
+
+
+                    var modelsInCategory = modelIndex.modelFilesForCategory.GetOrAdd(categoryName, (lst) => new List<ModelFile>());
+                    modelsInCategory.Add(new ModelFile
+                    {
+                        Name = dataSourceName,
+                        Category = categoryName,
+                        ApiPath = modelApiPath,
+                        ByteSize = modelBytes.Length,
+                    });
+
+                }
             }
-
 
             File.WriteAllText($"{BAKED_MODELS_DIR}/index.json", JsonConvert.SerializeObject(modelIndex));
 

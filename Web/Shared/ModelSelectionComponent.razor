@@ -6,11 +6,21 @@
     <h2>Models</h2>
     <p>Currently loaded model: <b>@loadedModelName</b></p>
     <ul>
-        @foreach (var model in possibleModels)
+
+        @foreach (var category in possibleModels.Keys)
         {
-            <li class="model-picker-element" @onclick="() => LoadPreBakedModel(model)">@model</li>
+            <li>
+                <b>@category</b>
+                <ul>
+                    @foreach (var model in possibleModels[category])
+                    {
+                        <li class="model-picker-element" @onclick="() => LoadPreBakedModel(model)">@model.Name (@((model.ByteSize/1_000_000).ToString("N2"))Mb)</li>
+                    }
+                </ul>
+            </li>
         }
     </ul>
+
 }
 
 
@@ -21,7 +31,7 @@
     [Parameter]
     public Action? OnNewModelStartLoading { get; set; } = null;
 
-    private List<string> possibleModels = new List<string>();
+    private Dictionary<string, List<ModelFile>> possibleModels = new Dictionary<string, List<ModelFile>>();
     private string loadedModelName = "NONE";
     private bool loadingModel = false;
 
@@ -34,15 +44,16 @@
     private async Task FetchPossibleModels()
     {
         var data = await Http.GetFromJsonAsync<ModelIndex>("api/data/baked-models/index.json");
-        if (data?.modelFiles != null)
+        if (data?.modelFilesForCategory != null)
         {
-            possibleModels = data.modelFiles;
-            possibleModels.Sort();
+            possibleModels = data.modelFilesForCategory;
         }
     }
 
-    private async Task LoadPreBakedModel(string modelName)
+    private async Task LoadPreBakedModel(ModelFile modelFile)
     {
+        var modelName = modelFile.ApiPath;
+
         loadingModel = true;
         if (OnNewModelStartLoading != null)
             OnNewModelStartLoading();
@@ -53,7 +64,7 @@
         var model = MarkovEnsemble.FromCompressedData(data);
         Console.Write($"Created MarkovEnsemble with {modelName} data");
 
-        loadedModelName = modelName;
+        loadedModelName = modelFile.Name;
 
         if (OnNewModelLoaded != null)
             OnNewModelLoaded(model);
