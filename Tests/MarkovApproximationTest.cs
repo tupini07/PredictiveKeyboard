@@ -58,7 +58,7 @@ namespace Tests
         [TestMethod]
         public void GenerateNGrams_RealData()
         {
-            var data = File.ReadAllText(@"TestData/Pride-and-prejudice.txt");
+            var data = File.ReadAllText(@"TestData/Books/Pride-and-prejudice.txt");
             var model = new MarkovApproximation();
             model.Hydrate(data);
 

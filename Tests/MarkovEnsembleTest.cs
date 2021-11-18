@@ -38,7 +38,7 @@ namespace Tests
         [TestMethod]
         public void MarkovEnsemble_RealData_SerializeDeserialize()
         {
-            var data = File.ReadAllText(@"TestData/Pride-and-prejudice.txt");
+            var data = File.ReadAllText(@"TestData/Books/Pride-and-prejudice.txt");
             var model = new MarkovEnsemble();
             model.Hydrate(data);
 
