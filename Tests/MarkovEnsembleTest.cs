@@ -1,5 +1,10 @@
 ﻿using Lib.Models;
+using Lib.Serialization;
+using Lib.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.IO;
 using System.Linq;
 
 namespace Tests
@@ -34,6 +39,25 @@ namespace Tests
             Assert.IsTrue(
                 pred.Single(p => p.Word == "some").Score > pred.Single(p => p.Word == "for").Score
             );
+        }
+
+        [TestMethod]
+        public void MarkovEnsemble_RealData_SerializeDeserialize()
+        {
+            var data = File.ReadAllText(@"TestData/Pride-and-prejudice.txt");
+            var model = new MarkovEnsemble();
+            model.Hydrate(data);
+
+            var pred = model.PredictNextOptions("Darcy made no");
+
+            Assert.AreEqual("answer", pred.First().Word);
+
+
+            var compressed = model.ToCompressedData();
+            var decompressed = MarkovEnsemble.FromCompressedData(compressed);
+
+            var decompPred = decompressed.PredictNextOptions("Darcy made no");
+            Assert.AreEqual(JsonConvert.SerializeObject(pred), JsonConvert.SerializeObject(decompPred));
         }
     }
 }

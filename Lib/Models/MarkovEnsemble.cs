@@ -4,28 +4,28 @@ namespace Lib.Models
 {
     public class MarkovEnsemble : BaseModel<MarkovEnsemble>
     {
-        private const int MAX_NUMBER_PREDICTIONS = 18;
+        private readonly int MAX_NUMBER_PREDICTIONS = 18;
 
-        private List<MarkovApproximation> subModels;
+        private List<MarkovApproximation> children;
         private int numberSubmodels;
 
         public MarkovEnsemble(int submodels = 4)
         {
-            subModels = new List<MarkovApproximation>();
+            children = new List<MarkovApproximation>();
             numberSubmodels = submodels;
             InitModels();
         }
 
         private void InitModels()
         {
-            subModels.Clear();
+            children.Clear();
             // minimum useful ngram size is a bigram (relation between previous and current word)
             for (var i = 2; i <= numberSubmodels; i++)
             {
-                subModels.Add(new MarkovApproximation(ngramSize: i));
+                children.Add(new MarkovApproximation(ngramSize: i));
             }
 
-            subModels.Reverse();
+            children.Reverse();
         }
 
         public override void Clear()
@@ -35,7 +35,7 @@ namespace Lib.Models
 
         public override void Hydrate(string corpus)
         {
-            foreach (var submodel in subModels)
+            foreach (var submodel in children)
             {
                 submodel.Hydrate(corpus);
             }
@@ -48,9 +48,9 @@ namespace Lib.Models
             var seenWords = new HashSet<string>();
 
             // get tiered predictions
-            for (var i = 0; i < subModels.Count && predictions.Count <= MAX_NUMBER_PREDICTIONS; i++)
+            for (var i = 0; i < children.Count && predictions.Count <= MAX_NUMBER_PREDICTIONS; i++)
             {
-                var submodel = subModels[i];
+                var submodel = children[i];
                 var modelPreds = submodel.PredictNextOptions(currentText)
                     .OrderByDescending(pred => pred.Score)
                     .Select(pred =>
