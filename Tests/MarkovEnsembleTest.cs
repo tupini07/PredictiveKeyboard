@@ -20,14 +20,11 @@ namespace Tests
 
             var pred = model.PredictNextOptions("this is some");
 
-            Assert.AreEqual(1, pred.Count);
             Assert.AreEqual("potato", pred.First().Word);
-            Assert.AreEqual(1, pred.First().Score);
 
             model.Hydrate("this is some cereal which is for breakfast");
 
             pred = model.PredictNextOptions("this is");
-            Assert.AreEqual(2, pred.Count);
 
             var predictedWords = pred.Select(p => p.Word);
             Assert.IsTrue(predictedWords.Contains("some"));

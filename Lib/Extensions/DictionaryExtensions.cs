@@ -17,11 +17,15 @@ namespace Lib.Extensions
             if (valueFactory == null) throw new ArgumentNullException(nameof(valueFactory));
 
             TValue value;
+
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
             if (!dictionary.TryGetValue(key, out value))
             {
                 value = valueFactory.Invoke(key);
                 dictionary.Add(key, value);
             }
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+
             return value;
         }
     }

@@ -11,10 +11,10 @@ namespace Lib.Models
         private NGram ngramModel;
         private Dictionary<string, Dictionary<int, int>> ngramCounts = new Dictionary<string, Dictionary<int, int>>();
 
-        public MarkovApproximation(int ngramSize = 4)
+        public MarkovApproximation(int ngramSize = 4, Dictionary<int, string>? _id2word = null, Dictionary<string, int>? _word2id = null)
         {
             this.NgramSize = ngramSize;
-            this.ngramModel = new NGram(NgramSize);
+            this.ngramModel = new NGram(NgramSize, _id2word, _word2id);
         }
 
         public void Hydrate(string corpus)

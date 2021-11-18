@@ -1,4 +1,5 @@
-﻿using Lib.Serialization;
+﻿using Lib.Interfaces;
+using Lib.Serialization;
 using Lib.Utils;
 using Newtonsoft.Json;
 
@@ -11,6 +12,7 @@ namespace Lib.Models
         {
             var serialized = JsonConvert.SerializeObject(this, new JsonSerializerSettings
             {
+                TypeNameHandling = TypeNameHandling.Auto,
                 ContractResolver = new ModelJsonContractResolver()
             });
 
@@ -22,6 +24,7 @@ namespace Lib.Models
             var json = Compressor.Unzip(bytes);
             var deserialized = JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings
             {
+                TypeNameHandling = TypeNameHandling.Auto,
                 ContractResolver = new ModelJsonContractResolver()
             });
 

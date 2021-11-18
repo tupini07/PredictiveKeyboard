@@ -12,6 +12,12 @@ namespace Lib.Models
         public List<Prediction> topWords = new List<Prediction>();
 
 
+        public WordFrequencyModel(Dictionary<int, string>? _id2word = null, Dictionary<string, int>? _word2id = null)
+        {
+            this.id2word = _id2word ?? this.id2word;
+            this.word2id = _word2id ?? this.word2id;
+        }
+
         public void Clear()
         {
             topWords.Clear();
@@ -32,7 +38,7 @@ namespace Lib.Models
                 }
 
                 var currentWordCound = wordCounts.GetOrAdd(wordHash, (word) => 0);
-                wordCounts.Add(wordHash, currentWordCound + 1);
+                wordCounts[wordHash] = currentWordCound + 1;
             }
 
             // once hydrated we set the top words in order
@@ -47,7 +53,7 @@ namespace Lib.Models
             topWords = rawWopWords.Select(kvp => new Prediction
             {
                 Word = id2word[kvp.Key],
-                Score = kvp.Value / sumCounts,
+                Score = (float)kvp.Value / sumCounts,
             })
                 .ToList();
         }

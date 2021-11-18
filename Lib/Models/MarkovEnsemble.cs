@@ -18,14 +18,18 @@ namespace Lib.Models
         private void InitModels()
         {
             children.Clear();
+
+            var sharedId2Word = new Dictionary<int, string>();
+            var sharedWord2Id = new Dictionary<string, int>();
+
             // minimum useful ngram size is a bigram (relation between previous and current word)
             for (var i = numberSubmodels; i > 1; i--)
             {
-                children.Add(new MarkovApproximation(ngramSize: i));
+                children.Add(new MarkovApproximation(ngramSize: i, sharedId2Word, sharedWord2Id));
             }
 
             // finally add a word frequencyt model
-            children.Add(new WordFrequencyModel());
+            children.Add(new WordFrequencyModel(sharedId2Word, sharedWord2Id));
         }
 
         public void Clear()
@@ -56,9 +60,9 @@ namespace Lib.Models
                     .Select(pred =>
                     {
                         // The oldest models have lower scores ( /10 for every model)
-                        pred.Score = pred.Score / (i == 0 ? 1 : 10 * i);
+                        pred.Score = pred.Score / (float)Math.Pow(10, i);
                         return pred;
-                    }); ;
+                    });
 
                 foreach (var mp in modelPreds)
                 {
