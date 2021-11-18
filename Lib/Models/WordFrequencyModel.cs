@@ -51,7 +51,7 @@ namespace Lib.Models
             topWords = rawWopWords.Select(kvp => new Prediction
             {
                 Word = vocabulary.GetWordFromId(kvp.Key),
-                Score = (float)kvp.Value / sumCounts,
+                Score = (double)kvp.Value / sumCounts,
             })
                 .ToList();
         }

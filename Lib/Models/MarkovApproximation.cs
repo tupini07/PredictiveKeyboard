@@ -94,7 +94,7 @@ namespace Lib.Models
                     new Prediction
                     {
                         Word = this.ngramModel.vocabulary.GetWordFromId(kvp.Key),
-                        Score = (float)kvp.Value / allScore,
+                        Score = (double)kvp.Value / allScore,
                     })
                     .Take(maxResults)
                     .ToList();

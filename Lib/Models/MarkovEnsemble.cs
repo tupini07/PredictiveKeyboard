@@ -60,7 +60,7 @@ namespace Lib.Models
                     .Select(pred =>
                     {
                         // The oldest models have lower scores ( /10 for every model)
-                        pred.Score = pred.Score / (float)Math.Pow(10, i);
+                        pred.Score = pred.Score / Math.Pow(10, i);
                         return pred;
                     });
 
@@ -80,7 +80,7 @@ namespace Lib.Models
             var cutPreds = predictions.Take(maxResults);
 
             // normalize scores and return
-            float allScores = cutPreds.Aggregate(0.0f, (acc, pred) => acc + pred.Score);
+            double allScores = cutPreds.Aggregate(0.0, (acc, pred) => acc + pred.Score);
             return cutPreds.Select(pred =>
             {
                 pred.Score = pred.Score / allScores;

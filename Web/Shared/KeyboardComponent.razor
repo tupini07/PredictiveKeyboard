@@ -9,7 +9,7 @@
             <div class="keyboard-row">
                 @foreach (var pred in batch)
                 {
-                    <button class="keyboard-entry" @onclick="() => OnWordSelected(pred)">@pred.Word : @pred.Score</button>
+                    <button class="keyboard-entry" @onclick="() => OnWordSelected(pred)">@pred.Word<br />@pred.Score.ToString("N10")%</button>
                 }
             </div>
         }

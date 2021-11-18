@@ -1,0 +1,64 @@
+﻿@using Lib.Entities
+@inject HttpClient Http
+
+@if (possibleModels.Any() && !loadingModel)
+{
+    <h2>Models</h2>
+    <p>Currently loaded model: <b>@loadedModelName</b></p>
+    <ul>
+        @foreach (var model in possibleModels)
+        {
+            <li class="model-picker-element" @onclick="() => LoadPreBakedModel(model)">@model</li>
+        }
+    </ul>
+}
+
+
+@code {
+    [Parameter, EditorRequired]
+    public Action<MarkovEnsemble>? OnNewModelLoaded { get; set; } = null;
+
+    [Parameter]
+    public Action? OnNewModelStartLoading { get; set; } = null;
+
+    private List<string> possibleModels = new List<string>();
+    private string loadedModelName = "NONE";
+    private bool loadingModel = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await FetchPossibleModels();
+    }
+
+    private async Task FetchPossibleModels()
+    {
+        var data = await Http.GetFromJsonAsync<ModelIndex>("api/data/baked-models/index.json");
+        if (data?.modelFiles != null)
+        {
+            possibleModels = data.modelFiles;
+            possibleModels.Sort();
+        }
+    }
+
+    private async Task LoadPreBakedModel(string modelName)
+    {
+        loadingModel = true;
+        if (OnNewModelStartLoading != null)
+            OnNewModelStartLoading();
+
+        var data = await Http.GetByteArrayAsync($"api/data/baked-models/{modelName}");
+        Console.Write($"Loaded {modelName} from server");
+
+        var model = MarkovEnsemble.FromCompressedData(data);
+        Console.Write($"Created MarkovEnsemble with {modelName} data");
+
+        loadedModelName = modelName;
+
+        if (OnNewModelLoaded != null)
+            OnNewModelLoaded(model);
+
+        loadingModel = false;
+    }
+
+}

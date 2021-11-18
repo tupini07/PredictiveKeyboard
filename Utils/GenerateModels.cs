@@ -53,6 +53,8 @@ namespace Utils
 
         public static ModelIndex BakeEnsembleMarkovModels(ModelIndex? modelIndex = null)
         {
+            const int ensembleSize = 5;
+
             if (modelIndex == null)
             {
                 modelIndex = new ModelIndex();
@@ -61,13 +63,13 @@ namespace Utils
             foreach (var filePath in Directory.EnumerateFiles(@"Tests/TestData"))
             {
                 var dataSourceName = Path.GetFileNameWithoutExtension(filePath);
-                var modelFileName = $"{dataSourceName}_markov_ensemble_size4.mdl";
+                var modelFileName = $"{dataSourceName}_markov_ensemble_size{ensembleSize}.mdl";
 
                 Console.WriteLine($"\nGenerating model: {modelFileName}");
 
                 var data = File.ReadAllText(filePath);
 
-                var model = new MarkovEnsemble(4);
+                var model = new MarkovEnsemble(ensembleSize);
                 model.Hydrate(data);
 
                 if (!modelIndex.sourceFiles.Contains(dataSourceName))

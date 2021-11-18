@@ -1,0 +1,28 @@
+﻿<div>
+    <textarea class="experience-textarea" rows="10"
+              @bind="InputText"
+              disabled=true />
+
+    <button @onclick=DeleteLastWord>Delete last word</button>
+</div>
+
+@code {
+    [Parameter]
+    public string InputText { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<string> InputTextChanged { get; set; }
+
+
+    private void DeleteLastWord()
+    {
+        var splitted = InputText.Split(' ');
+        var allExceptLast = splitted.Take(splitted.Length - 1);
+
+
+        InputText = string.Join(" ", allExceptLast);
+
+
+        InputTextChanged.InvokeAsync(InputText);
+    }
+}
