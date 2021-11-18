@@ -1,21 +1,20 @@
 ﻿using Lib.Entities;
 using Lib.Extensions;
 using Lib.Interfaces;
+using Lib.Structures;
 
 namespace Lib.Models
 {
     internal class WordFrequencyModel : BaseModel<WordFrequencyModel>, IGenerationModel
     {
-        private Dictionary<int, string> id2word = new Dictionary<int, string>();
-        private Dictionary<string, int> word2id = new Dictionary<string, int>();
+        public VocabularyManager vocabulary { get; private set; } = new VocabularyManager();
 
         public List<Prediction> topWords = new List<Prediction>();
 
 
-        public WordFrequencyModel(Dictionary<int, string>? _id2word = null, Dictionary<string, int>? _word2id = null)
+        public WordFrequencyModel(VocabularyManager? _vocabulary = null)
         {
-            this.id2word = _id2word ?? this.id2word;
-            this.word2id = _word2id ?? this.word2id;
+            this.vocabulary = _vocabulary ?? this.vocabulary;
         }
 
         public void Clear()
@@ -25,16 +24,15 @@ namespace Lib.Models
 
         public void Hydrate(string corpus)
         {
-            var words = NGram.SplitTextIntoWords(corpus);
+            var words = VocabularyManager.SplitTextIntoWords(corpus);
             var wordCounts = new Dictionary<int, int>();
 
             foreach (var word in words)
             {
                 var wordHash = word.GetHashCode();
-                if (!id2word.ContainsKey(wordHash))
+                if (!vocabulary.ContainsWordId(wordHash))
                 {
-                    id2word[wordHash] = word;
-                    word2id[word] = wordHash;
+                    vocabulary.AddVocabularyItem(wordHash, word);
                 }
 
                 var currentWordCound = wordCounts.GetOrAdd(wordHash, (word) => 0);
@@ -52,7 +50,7 @@ namespace Lib.Models
 
             topWords = rawWopWords.Select(kvp => new Prediction
             {
-                Word = id2word[kvp.Key],
+                Word = vocabulary.GetWordFromId(kvp.Key),
                 Score = (float)kvp.Value / sumCounts,
             })
                 .ToList();

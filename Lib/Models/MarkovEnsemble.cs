@@ -1,5 +1,6 @@
 ﻿using Lib.Entities;
 using Lib.Interfaces;
+using Lib.Structures;
 
 namespace Lib.Models
 {
@@ -19,17 +20,16 @@ namespace Lib.Models
         {
             children.Clear();
 
-            var sharedId2Word = new Dictionary<int, string>();
-            var sharedWord2Id = new Dictionary<string, int>();
+            var sharedVocab = new VocabularyManager();
 
             // minimum useful ngram size is a bigram (relation between previous and current word)
             for (var i = numberSubmodels; i > 1; i--)
             {
-                children.Add(new MarkovApproximation(ngramSize: i, sharedId2Word, sharedWord2Id));
+                children.Add(new MarkovApproximation(ngramSize: i, sharedVocab));
             }
 
             // finally add a word frequencyt model
-            children.Add(new WordFrequencyModel(sharedId2Word, sharedWord2Id));
+            children.Add(new WordFrequencyModel(sharedVocab));
         }
 
         public void Clear()

@@ -1,6 +1,7 @@
 ﻿using Lib.Entities;
 using Lib.Extensions;
 using Lib.Interfaces;
+using Lib.Structures;
 
 namespace Lib.Models
 {
@@ -11,10 +12,10 @@ namespace Lib.Models
         private NGram ngramModel;
         private Dictionary<string, Dictionary<int, int>> ngramCounts = new Dictionary<string, Dictionary<int, int>>();
 
-        public MarkovApproximation(int ngramSize = 4, Dictionary<int, string>? _id2word = null, Dictionary<string, int>? _word2id = null)
+        public MarkovApproximation(int ngramSize = 4, VocabularyManager? _vocabulary = null)
         {
             this.NgramSize = ngramSize;
-            this.ngramModel = new NGram(NgramSize, _id2word, _word2id);
+            this.ngramModel = new NGram(NgramSize, _vocabulary);
         }
 
         public void Hydrate(string corpus)
@@ -55,7 +56,7 @@ namespace Lib.Models
                 throw new ArgumentNullException($"Expected {nameof(ngramModel)} not to be null by now");
             }
 
-            var words = NGram.SplitTextIntoWords(currentText).ToList();
+            var words = VocabularyManager.SplitTextIntoWords(currentText).ToList();
             List<string> lastWords = new List<string>();
 
             var ngramBaseSize = NgramSize - 1;
@@ -70,12 +71,12 @@ namespace Lib.Models
                 var difference = ngramBaseSize - words.Count;
                 for (int i = 0; i < difference; i++)
                 {
-                    lastWords.Add(NGram.UNKNOWN_TOKEN);
+                    lastWords.Add(VocabularyManager.UNKNOWN_TOKEN);
                 }
                 lastWords.AddRange(words);
             }
 
-            var convertedToIds = from w in lastWords select ngramModel.GetIdFromWord(w);
+            var convertedToIds = from w in lastWords select ngramModel.vocabulary.GetIdFromWord(w);
 
 #if DEBUG
             if (convertedToIds.Count() != ngramBaseSize)
@@ -92,7 +93,7 @@ namespace Lib.Models
                 return matches.Select(kvp =>
                     new Prediction
                     {
-                        Word = this.ngramModel.GetWordFromId(kvp.Key),
+                        Word = this.ngramModel.vocabulary.GetWordFromId(kvp.Key),
                         Score = (float)kvp.Value / allScore,
                     })
                     .Take(maxResults)

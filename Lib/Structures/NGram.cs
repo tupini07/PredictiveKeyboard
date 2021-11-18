@@ -1,115 +1,48 @@
 ﻿using Lib.Extensions;
-using System.Text.RegularExpressions;
 
-namespace Lib
+namespace Lib.Structures
 {
     internal class NGram
     {
-        private readonly HashSet<string> PUNCTUATIONS = new HashSet<string> { "!", "?", "." };
-
-        public const int UNKNOWN_ID = -1;
-        public const string UNKNOWN_TOKEN = "UNK";
-
-        private Dictionary<int, string> id2word = new Dictionary<int, string>();
-        private Dictionary<string, int> word2id = new Dictionary<string, int>();
+        public VocabularyManager vocabulary { get; private set; } = new VocabularyManager();
 
         public List<List<int>> AllGrams { get; private set; } = new List<List<int>>();
 
         private int Size;
 
-        public NGram(int Size = 4, Dictionary<int, string>? _id2word = null, Dictionary<string, int>? _word2id = null)
+        public NGram(int Size = 4, VocabularyManager? _vocabulary = null)
         {
-
-            this.id2word = _id2word ?? this.id2word;
-            this.word2id = _word2id ?? this.word2id;
-
-            this.id2word[UNKNOWN_ID] = UNKNOWN_TOKEN;
-            this.word2id[UNKNOWN_TOKEN] = UNKNOWN_ID;
-
+            this.vocabulary = _vocabulary ?? this.vocabulary;
             this.Size = Size;
         }
 
         public void AddContent(string corpus)
         {
-            var words = SplitTextIntoWords(corpus);
+            var words = VocabularyManager.SplitTextIntoWords(corpus);
 
             foreach (var word in words)
             {
-                if (!word2id.ContainsKey(word))
+                if (!vocabulary.ContainsWord(word))
                 {
                     var wordHash = word.GetHashCode();
-                    id2word[wordHash] = word;
-                    word2id[word] = wordHash;
+                    vocabulary.AddVocabularyItem(wordHash, word);
                 }
             }
 
 #if DEBUG
-            Console.WriteLine($"Created NGram structure with size {Size} and {this.word2id.Keys.Count} words");
+            Console.WriteLine($"Created NGram structure with size {Size} and {vocabulary.Count} words");
 #endif
 
             this.AllGrams.AddRange(GenerateNGrams(words));
         }
 
-        public int GetIdFromWord(string word)
-        {
-#if DEBUG
-            if (SplitTextIntoWords(word).Count() != 1)
-            {
-                throw new Exception($"{nameof(GetIdFromWord)} should be provided only one word! Provided: {word}");
-            }
-#endif
-            if (word2id.ContainsKey(word))
-            {
-                return word2id[word];
-            }
-            else
-            {
-                return UNKNOWN_ID;
-            }
-        }
-
-        public string GetWordFromId(int id)
-        {
-            if (id2word.ContainsKey(id))
-            {
-                return id2word[id];
-            }
-            else
-            {
-                return UNKNOWN_TOKEN;
-            }
-        }
-
-        public static IEnumerable<string> SplitTextIntoWords(string text)
-        {
-            // remove newlines and other useless characters
-            text = Regex.Replace(text.ToLower(), @"\n|\t|\r", " ");
-
-            // collapse all spaces to 1 space
-            text = Regex.Replace(text, @"\s+", " ");
-
-            // normalize quotes
-            text = Regex.Replace(text, "“", "\"");
-            text = Regex.Replace(text, "”", "\"");
-            text = Regex.Replace(text, "’", "'");
-
-            // normalize dashes
-            text = Regex.Replace(text, "—", "-");
-
-            // not really necessary, but some people put periods before closed parenthesis
-            text = text.Replace(".)", ").");
-
-            // split on relevant characters
-            var words = from w in Regex.Split(text, @"(\s|'|,|;|:|""|!|\?|\.|-|@|{|}|\[|\])") where w != "" && w != " " select w;
-            return words;
-        }
 
         private List<int> CreateEmptyNgram()
         {
             var emptyGram = new List<int>();
             for (int i = 0; i < this.Size; i++)
             {
-                emptyGram.Add(UNKNOWN_ID);
+                emptyGram.Add(VocabularyManager.UNKNOWN_ID);
             }
 
 #if DEBUG
@@ -130,13 +63,13 @@ namespace Lib
             foreach (var word in words)
             {
                 var popped = currentGram.PopLeft();
-                currentGram.Add(word2id[word]);
+                currentGram.Add(vocabulary.GetIdFromWord(word));
 
                 allGramsInInput.Add(currentGram.CopyList());
 
                 // if it's a sentence end then new gram should start from empty
-                var poppedWord = id2word[popped];
-                if (PUNCTUATIONS.Contains(poppedWord))
+                var poppedWord = vocabulary.GetWordFromId(popped);
+                if (VocabularyManager.PUNCTUATIONS.Contains(poppedWord))
                 {
                     var subNgram = CreateEmptyNgram();
                     foreach (var tokenInNgram in currentGram)
