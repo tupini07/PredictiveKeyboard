@@ -21,12 +21,20 @@ else
 
 }
 
-<ModelSelectionComponent OnNewModelStartLoading=OnNewModelStartsLoading OnNewModelLoaded=OnNewModelLoaded />
+@if (!customTxtModel)
+{
+    <ModelSelectionComponent OnNewModelStartLoading=OnNewModelStartsLoading OnNewModelLoaded=OnNewModelLoaded />
+}
+else
+{
+    <p>You're using a custom TXT model. To choose one of the <i>pre-baked</i> models reload the page.</p>
+}
 
 
 @code {
     private string inputText = "";
     private bool loadingModel = false;
+    private bool customTxtModel = false;
 
     private MarkovEnsemble model = new MarkovEnsemble();
     protected override void OnInitialized()
@@ -53,6 +61,7 @@ else
 
     private async Task HydrateModelWithCustomTxt(InputFileChangeEventArgs evt)
     {
+        customTxtModel = true;
         var fileName = evt.File.Name;
 
         loadingModel = true;
