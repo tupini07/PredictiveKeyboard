@@ -12,6 +12,7 @@ namespace Lib
 
         private Dictionary<int, string> id2word = new Dictionary<int, string>();
         private Dictionary<string, int> word2id = new Dictionary<string, int>();
+
         public List<List<int>> AllGrams { get; private set; } = new List<List<int>>();
 
         private int Size;
@@ -30,9 +31,12 @@ namespace Lib
 
             foreach (var word in words)
             {
-                var wordHash = word.GetHashCode();
-                id2word[wordHash] = word;
-                word2id[word] = wordHash;
+                if (!word2id.ContainsKey(word))
+                {
+                    var wordHash = word.GetHashCode();
+                    id2word[wordHash] = word;
+                    word2id[word] = wordHash;
+                }
             }
 
 #if DEBUG

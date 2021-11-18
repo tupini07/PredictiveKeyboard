@@ -1,17 +1,16 @@
 ﻿using Lib.Entities;
+using Lib.Interfaces;
 
 namespace Lib.Models
 {
-    public class MarkovEnsemble : BaseModel<MarkovEnsemble>
+    public class MarkovEnsemble : BaseModel<MarkovEnsemble>, IGenerationModel
     {
-        private readonly int MAX_NUMBER_PREDICTIONS = 18;
-
-        private List<MarkovApproximation> children;
+        private List<IGenerationModel> children;
         private int numberSubmodels;
 
         public MarkovEnsemble(int submodels = 4)
         {
-            children = new List<MarkovApproximation>();
+            children = new List<IGenerationModel>();
             numberSubmodels = submodels;
             InitModels();
         }
@@ -20,20 +19,21 @@ namespace Lib.Models
         {
             children.Clear();
             // minimum useful ngram size is a bigram (relation between previous and current word)
-            for (var i = 2; i <= numberSubmodels; i++)
+            for (var i = numberSubmodels; i > 1; i--)
             {
                 children.Add(new MarkovApproximation(ngramSize: i));
             }
 
-            children.Reverse();
+            // finally add a word frequencyt model
+            children.Add(new WordFrequencyModel());
         }
 
-        public override void Clear()
+        public void Clear()
         {
             InitModels();
         }
 
-        public override void Hydrate(string corpus)
+        public void Hydrate(string corpus)
         {
             foreach (var submodel in children)
             {
@@ -41,14 +41,14 @@ namespace Lib.Models
             }
         }
 
-        public override List<Prediction> PredictNextOptions(string currentText)
+        public List<Prediction> PredictNextOptions(string currentText, int maxResults = 18)
         {
             // only one model can predict a certain word
             var predictions = new List<Prediction>();
             var seenWords = new HashSet<string>();
 
             // get tiered predictions
-            for (var i = 0; i < children.Count && predictions.Count <= MAX_NUMBER_PREDICTIONS; i++)
+            for (var i = 0; i < children.Count && predictions.Count <= maxResults; i++)
             {
                 var submodel = children[i];
                 var modelPreds = submodel.PredictNextOptions(currentText)
@@ -68,12 +68,12 @@ namespace Lib.Models
                         predictions.Add(mp);
                     }
 
-                    if (predictions.Count == MAX_NUMBER_PREDICTIONS)
+                    if (predictions.Count == maxResults)
                         break;
                 }
             }
 
-            var cutPreds = predictions.Take(MAX_NUMBER_PREDICTIONS);
+            var cutPreds = predictions.Take(maxResults);
 
             // normalize scores and return
             float allScores = cutPreds.Aggregate(0.0f, (acc, pred) => acc + pred.Score);

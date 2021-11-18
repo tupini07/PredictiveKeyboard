@@ -1,9 +1,10 @@
 ﻿using Lib.Entities;
 using Lib.Extensions;
+using Lib.Interfaces;
 
 namespace Lib.Models
 {
-    public class MarkovApproximation : BaseModel<MarkovApproximation>
+    public class MarkovApproximation : BaseModel<MarkovApproximation>, IGenerationModel
     {
         private int NgramSize = 4;
 
@@ -16,7 +17,7 @@ namespace Lib.Models
             this.ngramModel = new NGram(NgramSize);
         }
 
-        public override void Hydrate(string corpus)
+        public void Hydrate(string corpus)
         {
             this.ngramModel.AddContent(corpus);
 
@@ -47,7 +48,7 @@ namespace Lib.Models
 #endif
         }
 
-        public override List<Prediction> PredictNextOptions(string currentText)
+        public List<Prediction> PredictNextOptions(string currentText, int maxResults = 20)
         {
             if (ngramModel == null)
             {
@@ -93,7 +94,9 @@ namespace Lib.Models
                     {
                         Word = this.ngramModel.GetWordFromId(kvp.Key),
                         Score = (float)kvp.Value / allScore,
-                    }).ToList();
+                    })
+                    .Take(maxResults)
+                    .ToList();
             }
             else
             {
@@ -101,7 +104,7 @@ namespace Lib.Models
             }
         }
 
-        public override void Clear()
+        public void Clear()
         {
             this.ngramModel = new NGram(NgramSize);
             ngramCounts = new Dictionary<string, Dictionary<int, int>>();

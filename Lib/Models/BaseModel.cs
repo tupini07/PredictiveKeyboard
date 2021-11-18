@@ -1,5 +1,4 @@
-﻿using Lib.Entities;
-using Lib.Serialization;
+﻿using Lib.Serialization;
 using Lib.Utils;
 using Newtonsoft.Json;
 
@@ -32,8 +31,5 @@ namespace Lib.Models
             return deserialized;
         }
 
-        public abstract void Hydrate(string corpus);
-        public abstract List<Prediction> PredictNextOptions(string currentText);
-        public abstract void Clear();
     }
 }
