@@ -6,7 +6,7 @@
 
 @if (loadingModel)
 {
-    <p>loading model, this can take a while...</p>
+    <p>Loading model, this can take a while. Depending on model size this might freeze your browser.</p>
 }
 else
 {
@@ -81,6 +81,7 @@ else
     private void OnNewModelStartsLoading()
     {
         loadingModel = true;
+        this.inputText = "";
         StateHasChanged();
     }
 

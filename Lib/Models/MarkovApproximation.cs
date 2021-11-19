@@ -45,7 +45,19 @@ namespace Lib.Models
             }
 
 #if DEBUG
-            Console.WriteLine($"Hydrated Markov approximation model, with {ngramCounts.Count} states");
+            //var uniqueNGrams = new HashSet<string>();
+            //foreach (var kvp in ngramCounts)
+            //{
+            //    var baseN = kvp.Key;
+            //    foreach (var suffix in kvp.Value.Keys)
+            //    {
+            //        uniqueNGrams.Add($"{baseN}{suffix}");
+            //    }
+            //}
+            //Console.WriteLine($"Hydrated Markov approximation model with size {NgramSize} and {uniqueNGrams.Count} unique ngrams");
+
+
+            Console.WriteLine($"Hydrated Markov approximation model with size {NgramSize} and {ngramCounts.Count} base states");
 #endif
         }
 

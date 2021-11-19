@@ -8,7 +8,6 @@ namespace Utils
 
         class Options
         {
-            // Omitting long name, defaults to name of property, ie "--verbose"
             [Option(
               Default = false,
               HelpText = "Generates pre-made-models from testing data to be used in the actual application")]

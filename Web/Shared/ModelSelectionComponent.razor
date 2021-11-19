@@ -14,7 +14,7 @@
                 <ul>
                     @foreach (var model in possibleModels[category])
                     {
-                        <li class="model-picker-element" @onclick="() => LoadPreBakedModel(model)">@model.Name (@((model.ByteSize/1_000_000).ToString("N2"))Mb)</li>
+                        <li class="model-picker-element" @onclick="() => LoadPreBakedModel(model)">@model.Name (@((model.ByteSize/1_000_000).ToString("N2"))MB)</li>
                     }
                 </ul>
             </li>
